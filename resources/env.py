@@ -1,5 +1,5 @@
 # Environment
-PATH = "C:\\PATH\\TO\\scraper\\"
+PATH = "C:\Users\evan9\OneDrive\Desktop\school\Applied Machine Learning\project2\scraper"
 IMAGE_DIR = "images\\"
 DATA_DIR = "data\\"
 MAX_IMAGES = 6
