@@ -41,7 +41,7 @@ class ImageObject :
             if (DEBUG) : print(greenText("Successful Request: " + self.src))
             image_file = io.BytesIO(image_content)
             image = Image.open(image_file)
-            file_path = downloadPath + self.filename
+            file_path = downloadPath + self.filename + IMAGE_EXTENSION
 
             with open(file_path, "wb") as f:
                 image.save(f, "JPEG")

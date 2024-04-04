@@ -17,6 +17,12 @@ class WebDriverManager() :
         if (DEBUG) : print(greenText("Started WebDriverManager"))
     def stop(self) :
         if (DEBUG) : print(greenText("Stopping WebDriverManager"))
+
+        self.webdriver.quit()
+        self.webservice.stop()
+    def __end__(self) :
+        if (DEBUG) : print(greenText("Stopping WebDriverManager"))
+        
         self.webdriver.quit()
         self.webservice.stop()
 

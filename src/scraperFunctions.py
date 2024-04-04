@@ -50,9 +50,9 @@ def scrapeImageObjects(wd, delay, max_images, url, label):
                         if label in imageAlt: #validate label
                             imageLabel = label
                         else :
-                            imageLabel = "None"
+                            imageLabel = label #Setting as the same for now, will improve tagging
                             if (DEBUG or VERBOSE) : print(redText("Warning: No label for image"))
-                        imageFilename = imageLabel + str(len(imageObjs)+1) + IMAGE_EXTENSION
+                        imageFilename = imageLabel + str(len(imageObjs)+1)
                         imageObj = ImageObject(src=imageSrc, label=imageLabel, filename=imageFilename) #create and add Image Object to set
                         imageObjs.add(imageObj)
                         imageUrls.add(imageSrc)
