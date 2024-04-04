@@ -6,7 +6,7 @@ from ImageObject import outputJSON
 import time
 import resources.env as env
 from resources.textColors import greenText, blueText, redText, headerText
-import threading
+from multiprocessing.pool import ThreadPool
 
 
 def webDriverOptions() :
@@ -22,10 +22,14 @@ class WebDriverManager() :
         self.webservice.start()
         self.webdriver = webdriver.Firefox(options=webDriverOptions(), service=self.webservice)
         if (env.DEBUG) : print(greenText("Started WebDriverManager"))
-    def __del__(self) :
+    def stop(self) :
         if (env.DEBUG) : print(greenText("Stopping WebDriverManager"))
         self.webdriver.quit()
         self.webservice.stop()
+    # def __del__(self) :
+    #     if (env.DEBUG) : print(greenText("Stopping WebDriverManager"))
+    #     self.webdriver.quit()
+    #     self.webservice.stop()
 
 def printVariables() :
     print(greenText("Variables: \n\tClasses(" + str(len(env.CLASSES)) + "): " + str(env.CLASSES) 
@@ -42,18 +46,29 @@ def main() :
     # Scrape Google Image Search Urls
     urlManager = WebDriverManager()
     urls = scrapeSearchUrls(urlManager.webdriver, env.CLASSES)
-    
+    urlManager.stop()
+
+
+    threadList = []
+    pool = ThreadPool(processes=len(env.CLASSES))
     for imgClass in env.CLASSES :
         if (env.VERBOSE) : print(blueText("Scraping Class: " + imgClass))
         os.makedirs(env.PATH + env.IMAGE_DIR + str(imgClass), exist_ok=True)
         classManager = WebDriverManager()
-        imgObjects =  threading.Thread(scrapeImageObjects, (classManager.webdriver, 1, env.MAX_IMAGES, urls[imgClass], imgClass))
-        imgObjects.start()
-        if (env.VERBOSE) : print(blueText("Downloading images from source..."))
-        for imgObj in imgObjects:
-            imgObj.downloadImage(env.PATH + env.IMAGE_DIR + str(imgClass) + "\\")
-            jsonObjs.append(imgObj.imageJSON())
+        classThread = pool.apply_async(scrapeImageObjects, (classManager.webdriver, 1, env.MAX_IMAGES, urls[imgClass], imgClass))
+        threadList.append([classManager, classThread])
+ 
 
+
+        
+    for manager, thread in threadList:
+        imgObjects = thread.get()
+        manager.stop()
+        for i, imgObj in enumerate(imgObjects) : #Returns a list of valid image objects
+            imgObj.setFilename(imgObj.label + str(i))
+            imgObj.downloadImage(env.PATH + env.IMAGE_DIR + str(imgObj.label) + "\\")
+            jsonObjs.append(imgObj.imageJSON())
+        manager.stop()
 
 
     outputJSON(env.PATH + env.DATA_DIR, "data", jsonObjs)

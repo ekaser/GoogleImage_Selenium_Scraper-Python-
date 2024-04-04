@@ -6,6 +6,7 @@ MAX_IMAGES = 6
 CLASSES = ["cat", "dog"]
 BROWSER_LOCATION = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
 DRIVER = "resources\\driver.exe"
+IMAGE_EXTENSION = ".jpg"
 #Output
 DEBUG = True #Do you want debug messages?
 VERBOSE = True #Do you want messages about the program?
