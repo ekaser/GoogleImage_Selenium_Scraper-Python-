@@ -1,5 +1,5 @@
 # Environment
-PATH = 
+PATH = "C:\\PATH\\TO\\scraper\\"
 IMAGE_DIR = "images\\"
 DATA_DIR = "data\\"
 MAX_IMAGES = 6
