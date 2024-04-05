@@ -6,10 +6,10 @@ from resources.env import DEBUG, VERBOSE, IMAGE_EXTENSION
 from resources.textColors import redText, greenText, blueText
 
 #Scrapes Images from a Google Image Search URL. The meat and potatoes
-def scrapeImageObjects(wd, delay, max_images, url, label):
+def scrapeImageObjects(wd, max_images, url, label):
     def scroll_down(wd): #scrpll down on page
         wd.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(delay)
+        time.sleep(0.5)
 
     # wd.get(url)
     imageObjs = set()
@@ -23,7 +23,7 @@ def scrapeImageObjects(wd, delay, max_images, url, label):
         for img in thumbnails[len(imageObjs) + skips:max_images]:
             try:
                 img.click() #Click it
-                time.sleep(delay)
+                time.sleep(0.5)
             except Exception as exception:
                 print("Exception in clicking thumbnail:\n" + str(exception))
                 continue
@@ -70,10 +70,10 @@ def scrapeSearchUrl(wd, imgClass) :
     search = wd.find_element(By.NAME, 'q')
     search.send_keys(imgClass)
     search.send_keys(Keys.RETURN)
-    time.sleep(5)
+    time.sleep(2)
     imgButton = wd.find_element(By.LINK_TEXT, "Images")
     imgButton.click()
-    time.sleep(2)
+    time.sleep(1)
     search = wd.find_element(By.NAME, 'q')
     url = wd.current_url
     if (DEBUG) : print(greenText(url))

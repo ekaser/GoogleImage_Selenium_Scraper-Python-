@@ -32,7 +32,7 @@ def main() :
     jsonObjs, urlThreads, imageObjectThreads, downloadThreads = [], [], [], []
     urlsReceived = 0
     imagesDownloadedStats = {x : 0 for x in env.CLASSES} # Download Stats Dictionary
-    pool = ThreadPool(processes=len(env.CLASSES)*3) #Max Threads is 3*number of classes
+    pool = ThreadPool(processes=len(env.CLASSES)*10) #Max Threads is 3*number of classes
     try :
         # Threading URL scraping / Opening webdrivers
         for imgClass in env.CLASSES :
@@ -46,7 +46,7 @@ def main() :
         for manager, thread, classLabel in urlThreads :
             url = thread.get() # Await URL thread join
             urlsReceived += 1
-            classThread = pool.apply_async(scrapeImageObjects, args=(manager.webdriver, 1, env.MAX_IMAGES, url, classLabel))
+            classThread = pool.apply_async(scrapeImageObjects, args=(manager.webdriver, env.MAX_IMAGES, url, classLabel))
             imageObjectThreads.append([manager, classThread])
 
         # Get the scraped image objects and download their images
