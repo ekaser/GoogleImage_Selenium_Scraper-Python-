@@ -1,6 +1,6 @@
 import requests, io
 from PIL import Image
-from resources.env import DEBUG, IMAGE_EXTENSION
+from resources.env import DEBUG, IMAGE_EXTENSION, IMAGE_DIR
 from resources.textColors import redText, greenText
 
 # ImageObject Class. Used for storing scraped web element data. 
@@ -35,17 +35,31 @@ class ImageObject :
             "filename" : str(self.filename)
         }
         return data
-    def downloadImage(self, downloadPath) : #dowload image from src to filename
+    def downloadImage(self) : #dowload image from src to filename
         try :
             image_content = requests.get(self.src).content
             if (DEBUG) : print(greenText("Successful Request: " + self.src))
             image_file = io.BytesIO(image_content)
             image = Image.open(image_file)
-            file_path = downloadPath + self.filename + IMAGE_EXTENSION
+            file_path = IMAGE_DIR + self.label + "\\" + self.filename + IMAGE_EXTENSION
 
             with open(file_path, "wb") as f:
                 image.save(f, "JPEG")
             if (DEBUG) : print(greenText("Saved image: " + file_path))
+            return self.imageJSON(), 0
         except Exception as e:
             if (DEBUG) : print(redText('FAILED -' + str(e)))
+            return {}, 1
 
+
+def downloadImages(imageObjects) :
+    returnObjects = []
+    for i, imgObj in enumerate(imageObjects) : # Returns a list of valid image objects
+        imgObj.setFilename(imgObj.label + str(i))
+        jsonObj, resVal = imgObj.downloadImage()
+        if (not resVal) :
+            returnObjects.append(jsonObj)
+        else :
+           if (DEBUG) : print(redText("Skipped Image"))
+    return returnObjects
+        
