@@ -2,9 +2,13 @@ import os,json, shutil, csv
 from src.WebDriverManager import WebDriverManager
 from src.scraperFunctions import scrapeImageObjects, scrapeSearchUrl
 from src.ImageObject import downloadImages
+from multiprocessing import Queue
 from multiprocessing.pool import ThreadPool
 import resources.env as env
+import time
 from resources.textColors import greenText, headerText, redText, blueText
+
+
 
 ## Helpers
 # Prints env Variables
@@ -29,10 +33,16 @@ def main() :
     print(headerText("Image Scraper 0.1.3"))
     if (env.DEBUG) : printVariables()
     os.makedirs(env.IMAGE_DIR, exist_ok=True) # Nested Folders.
+    if (env.NEW_DATA) : 
+        try : 
+            {shutil.rmtree(env.DATA_DIR)}
+        finally : 
+            os.makedirs(env.IMAGE_DIR, exist_ok=False) # Nested Folders.
+
     jsonObjs, urlThreads, imageObjectThreads, downloadThreads = [], [], [], []
     urlsReceived = 0
     imagesDownloadedStats = {x : 0 for x in env.CLASSES} # Download Stats Dictionary
-    pool = ThreadPool(processes=len(env.CLASSES)*10) #Max Threads is 3*number of classes
+    pool = ThreadPool(processes=len(env.CLASSES)*3) #Max Threads is 3*number of classes
     try :
         # Threading URL scraping / Opening webdrivers
         for imgClass in env.CLASSES :
@@ -48,30 +58,29 @@ def main() :
             urlsReceived += 1
             classThread = pool.apply_async(scrapeImageObjects, args=(manager.webdriver, env.MAX_IMAGES, url, classLabel))
             imageObjectThreads.append([manager, classThread])
-
         # Get the scraped image objects and download their images
         for manager, thread in imageObjectThreads:
   
-            imgObjects = thread.get() # Await Image Object Thread join
-            manager.stop()
+            imgObjects = thread.get() # Await Image Object Thread join    
             # for i, imgObj in enumerate(imgObjects) : # Returns a list of valid image objects
             #     imgObj.setFilename(imgObj.label + str(i))
             try :
                 if (env.VERBOSE) : print(blueText("Downloading Images..."))
                 downloadThread = pool.apply_async(downloadImages, args=([imgObjects]))
                 downloadThreads.append(downloadThread)
+
             except Exception as e :
                 if (env.DEBUG) : print(redText(redText("Skipping all Image downloads! - " + str(e))))
                 break
-
         for thread in downloadThreads : #Finish downloads and JSON
             returnedObjs = thread.get()
             for jsonObj in returnedObjs:
                 jsonObjs.append(jsonObj)
                 if (jsonObj['label'] != "None") : imagesDownloadedStats[jsonObj['label']] += 1
-
+            if (env.VERBOSE) : print(blueText("Saved class images"))
 
         outputJSONToCSV(jsonObjs)
+        pool.close()
         if (env.ZIP) : # Compresses files and deletes uncompressed files
             if (env.VERBOSE) : print(blueText("Zipping Files..."))
             shutil.make_archive(env.PATH + "data", 'zip', env.DATA_DIR)
@@ -81,15 +90,19 @@ def main() :
             print(blueText("URLs found: " + str(urlsReceived) + "\nImages Downloaded per class: "))
             for imgClass in imagesDownloadedStats.keys():
                 print(blueText("\t -" + imgClass + ": \t" + str(imagesDownloadedStats[imgClass])))
+    except TimeoutError as te :
+        print(redText("Timeout -" + str(te)))
     except Exception as e :
-        print(redText("Scraping Error! - " + str(e)))
-        if (env.KILLALL) :
-            for manager, thread, _ in urlThreads :
-                manager.stop()
-                thread.kill()
-            for _, thread in imageObjectThreads :
-                thread.kill()
-    pool.close()
+        for manager, thread, _ in urlThreads :
+            manager.stop()
+
+        print("scraper Error - " + str(e))
+        raise e
+    
+    pool.terminate()
     pool.join()
     return 0
-main()
+
+
+if __name__ == "__main__" : 
+    main() 
