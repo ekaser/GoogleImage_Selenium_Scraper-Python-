@@ -61,5 +61,22 @@ def downloadImages(imageObjects) :
             returnObjects.append(jsonObj)
         else :
            if (DEBUG) : print(redText("Skipped Image"))
+    
     return returnObjects
         
+
+def callbackDownloadImage(imgObj) : #dowload image from src to filename
+    try :
+        image_content = requests.get(imgObj.src).content
+        if (DEBUG) : print(greenText("Successful Request: " + imgObj.src))
+        image_file = io.BytesIO(image_content)
+        image = Image.open(image_file)
+        file_path = IMAGE_DIR + imgObj.label + "\\" + imgObj.filename + IMAGE_EXTENSION
+
+        with open(file_path, "wb") as f:
+            image.save(f, "JPEG")
+        if (DEBUG) : print(greenText("Saved image: " + file_path))
+        return imgObj.imageJSON(), 0
+    except Exception as e:
+        if (DEBUG) : print(redText('FAILED -' + str(e)))
+        return {}, 1
