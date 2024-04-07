@@ -69,11 +69,11 @@ def scrape(wd, label, data) :
                             if (DEBUG or VERBOSE) : print(redText("Warning: No label for image"))
                         imageFilename = imageLabel + str(len(imageUrls)+1)
                         imageObj = ImageObject(src=imageSrc, label=imageLabel, filename=imageFilename) #create and add Image Object to set
-                        imageObj.setFilename(label + str(len(jsonObjs)))
-                        # imageObjs.add(imageObj)
+                        imageObj.setFilename(label + str(len(jsonObjs) + len(data)))
+                        
                         imageUrls.append(imageSrc)
                         jsonObj, resVal = imageObj.downloadImage()
-                        
+                        del imageObj
                         if (not resVal) :
                             jsonObjs.append(jsonObj)
                             if (jsonObj['label'] != "None") : imagesDownloadedStats[jsonObj['label']] += 1

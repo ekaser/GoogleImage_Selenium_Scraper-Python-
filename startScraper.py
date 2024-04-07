@@ -96,9 +96,6 @@ def main() :
 
             
         outputJSONToCSV(exportJsonObjs)
-        killManagers()
-        pool.close()
-        pool.join()
         if (env.ZIP) : # Compresses files and deletes uncompressed files
             if (env.VERBOSE) : print(blueText("Zipping Files..."))
             shutil.make_archive(env.PATH + "data", 'zip', env.DATA_DIR)
